@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>如果湯姆能重來...</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0f1a;
+    --panel:#161b2e;
+    --panel2:#1f2640;
+    --cream:#f4f1de;
+    --yellow:#ffd166;
+    --red:#ff4d6d;
+    --green:#4ade80;
+    --blue:#5bc0eb;
+    --muted:#ffffff; /* 原本藍色小字，改為白色 */
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:"Microsoft JhengHei","PingFang HK","Noto Sans HK",monospace;
+    background-color:var(--bg);
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:16px 16px;
+    color:#e8ecff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    position:relative;
+    overflow-x:hidden;
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0.18) 3px,
+      rgba(0,0,0,0.18) 4px
+    );
+    z-index:9999;
+  }
+  .game{
+    width:min(1000px,100%);
+    background:var(--panel);
+    border:4px solid var(--yellow);
+    box-shadow:
+      0 0 0 4px #000,
+      10px 10px 0 0 #000,
+      0 0 40px rgba(255,209,102,0.12);
+    padding:28px 30px 26px;
+    position:relative;
+  }
+  .title-row{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .title-phone{
+    width:48px;
+    height:48px; /* 正方形以適應人物視角 */
+    flex-shrink:0;
+    image-rendering:pixelated;
+  }
+  h1{
+    margin:0;
+    font-size:clamp(26px,4vw,46px);
+    letter-spacing:3px;
+    color:var(--yellow);
+    text-shadow:
+      3px 3px 0 #000,
+      -1px -1px 0 #000,
+      1px -1px 0 #000,
+      -1px 1px 0 #000;
+    line-height:1.25;
+  }
+  .sub{
+    margin:10px 0 22px;
+    color:var(--muted);
+    font-size:clamp(14px,1.7vw,18px);
+    letter-spacing:1px;
+  }
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:18px;
+  }
+  .stat{
+    background:var(--panel2);
+    border:3px solid #000;
+    box-shadow:4px 4px 0 #000;
+    padding:10px 12px;
+  }
+  .stat span{
+    display:block;
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:6px;
+    letter-spacing:1px;
+  }
+  .stat strong{
+    display:block;
+    font-family:"Press Start 2P","Microsoft JhengHei",monospace;
+    font-size:clamp(13px,1.6vw,18px);
+    color:var(--yellow);
+    line-height:1.5;
+    word-break:break-all;
+  }
+  .fresh-label{
+    display:flex;
+    justify-content:space-between;
+    color:#ffffff;
+    font-size:14px;
+    margin-bottom:8px;
+    letter-spacing:1px;
+  }
+  .bar{
+    height:18px;
+    background:#0a0a0f;
+    border:4px solid #000;
+    box-shadow:4px 4px 0 #000;
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  #freshBar{
+    height:100%;
+    width:100%;
+    background:repeating-linear-gradient(
+      90deg,
+      var(--yellow) 0 8px,
+      #d9a400 8px 16px
+    );
+    transition:width 0.3s steps(6,end);
+  }
+  .card{
+    background:var(--cream);
+    color:#141a2e;
+    border:4px solid #000;
+    box-shadow:6px 6px 0 #000;
+    padding:22px 24px;
+    min-height:150px;
+  }
+  .card-inner{
+    display:flex;
+    gap:22px;
+    align-items:flex-start;
+  }
+  .icon-wrap{
+    flex-shrink:0;
+    width:96px;
+    height:96px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .event-icon{
+    width:96px;
+    height:96px;
+    image-rendering:pixelated;
+    display:block;
+  }
+  .card h2{
+    margin:0 0 12px;
+    font-size:clamp(22px,3vw,34px);
+    letter-spacing:1px;
+    color:#141a2e;
+  }
+  .card p{
+    margin:0;
+    font-size:clamp(16px,1.9vw,20px);
+    line-height:1.7;
+    color:#2b3552;
+  }
+  .choices{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-top:22px;
+  }
+  button{
+    border:4px solid #000;
+    border-radius:0;
+    box-shadow:5px 5px 0 #000;
+    padding:18px 20px;
+    font-family:inherit;
+    font-size:clamp(17px,2vw,22px);
+    font-weight:700;
+    cursor:pointer;
+    letter-spacing:1px;
+    transition:none;
+    position:relative;
+  }
+  button:hover{ filter:brightness(1.08); }
+  button:active{
+    transform:translate(3px,3px);
+    box-shadow:2px 2px 0 #000;
+  }
+  button small{
+    display:block;
+    font-family:"Press Start 2P",monospace;
+    font-size:11px;
+    font-weight:400;
+    margin-top:10px;
+    opacity:0.9;
+    letter-spacing:0;
+  }
+  .buy{ background:var(--red); color:#fff; }
+  .keep{ background:var(--green); color:#06281b; }
+  .log{
+    margin-top:18px;
+    min-height:28px;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.7;
+    letter-spacing:0.5px;
+  }
+  .result{
+    background:var(--cream);
+    color:#141a2e;
+    border:4px solid #000;
+    box-shadow:6px 6px 0 #000;
+    padding:26px;
+    margin-top:20px;
+  }
+  .result-inner{
+    display:flex;
+    gap:22px;
+    align-items:flex-start;
+  }
+  .result h2{
+    margin:0 0 14px;
+    font-size:clamp(24px,3.2vw,36px);
+    letter-spacing:1px;
+  }
+  .result p{
+    font-size:clamp(16px,1.9vw,20px);
+    line-height:1.8;
+    color:#2b3552;
+  }
+  .result strong{
+    color:#c1121f;
+    font-family:"Press Start 2P",monospace;
+    font-size:0.85em;
+  }
+  .hidden{ display:none !important; }
+  .controls{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:18px;
+  }
+  .reset{
+    background:var(--panel2);
+    color:#dbe5f8;
+    font-size:15px;
+    padding:12px 18px;
+    box-shadow:4px 4px 0 #000;
+  }
+  @media (max-width:640px){
+    .game{ padding:20px; }
+    .stats{ grid-template-columns:repeat(2,1fr); }
+    .choices{ grid-template-columns:1fr; }
+    h1{ letter-spacing:1px; }
+    .card-inner,.result-inner{ flex-direction:column; align-items:center; }
+    .icon-wrap{ width:78px; height:78px; }
+    .event-icon{ width:78px; height:78px; }
+    .title-phone{ width:40px; height:40px; }
+  }
+</style>
+</head>
+<body>
+<div class="game">
+  <div class="title-row">
+    <div class="title-phone" id="titlePhone"></div>
+    <h1>如果湯姆能重來...</h1>
+  </div>
+  <p class="sub">湯姆聽完我們的演講後十分懊悔，現在請求大家幫助湯姆重新作出選擇</p>
+
+  <div class="stats">
+    <div class="stat"><span>年份</span><strong id="year">1 / 10</strong></div>
+    <div class="stat"><span>總支出</span><strong id="spent">$0</strong></div>
+    <div class="stat"><span>換機次數</span><strong id="swaps">0</strong></div>
+    <div class="stat"><span>手機年齡</span><strong id="age">1 年</strong></div>
+  </div>
+
+  <div class="fresh-label">
+    <span>新鮮感</span>
+    <span id="freshVal">100%</span>
+  </div>
+  <div class="bar"><div id="freshBar"></div></div>
+
+  <div class="card" id="card">
+    <div class="card-inner">
+      <div class="icon-wrap" id="iconWrap"></div>
+      <div>
+        <h2 id="eventTitle">載入中</h2>
+        <p id="eventDesc"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="choices" id="choices">
+    <button class="buy" id="buyBtn">換新機 <small id="buyPrice"></small></button>
+    <button class="keep" id="keepBtn">再用一年 <small id="keepCost"></small></button>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <div class="result hidden" id="result">
+    <div class="result-inner">
+      <div class="icon-wrap" id="resultFace"></div>
+      <div>
+        <h2>10 年成績表</h2>
+        <p id="resultText"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="reset" id="resetBtn">重新開始</button>
+  </div>
+</div>
+
+<script>
+  /* ===== 像素圖標庫（16x16） ===== */
+  var ICONS = {
+    box: '<rect x="2" y="9" width="12" height="5" fill="#c98b4b"/><rect x="1" y="7" width="14" height="3" fill="#a86e34"/><rect x="6" y="1" width="4" height="7" fill="#1f2640"/><rect x="7" y="2" width="2" height="4" fill="#5bc0eb"/><rect x="7" y="6" width="2" height="1" fill="#0a0a0f"/>',
+
+    battery: '<rect x="1" y="5" width="12" height="6" fill="#0a0a0f"/><rect x="2" y="6" width="10" height="4" fill="#f4f1de"/><rect x="13" y="6" width="2" height="4" fill="#0a0a0f"/><rect x="3" y="7" width="6" height="2" fill="#4ade80"/><rect x="7" y="3" width="2" height="2" fill="#ffd166"/><rect x="6" y="5" width="2" height="2" fill="#ffd166"/>',
+
+    storage: '<rect x="3" y="2" width="10" height="12" fill="#0a0a0f"/><rect x="4" y="3" width="8" height="10" fill="#5bc0eb"/><rect x="5" y="4" width="6" height="2" fill="#0a0a0f"/><rect x="5" y="7" width="2" height="2" fill="#0a0a0f"/><rect x="9" y="7" width="2" height="2" fill="#0a0a0f"/><rect x="5" y="10" width="6" height="2" fill="#0a0a0f"/>',
+
+    compare: '<rect x="1" y="3" width="6" height="11" fill="#3a3f55"/><rect x="2" y="4" width="4" height="8" fill="#7d8aa8"/><rect x="3" y="5" width="1" height="3" fill="#f4f1de"/><rect x="4" y="7" width="1" height="2" fill="#f4f1de"/><rect x="3" y="12" width="2" height="1" fill="#f4f1de"/><rect x="9" y="2" width="6" height="12" fill="#0a0a0f"/><rect x="10" y="3" width="4" height="9" fill="#8fe3ff"/><rect x="11" y="12" width="2" height="1" fill="#f4f1de"/><rect x="14" y="1" width="2" height="1" fill="#ffd166"/><rect x="14" y="2" width="1" height="1" fill="#ffd166"/><rect x="15" y="2" width="1" height="1" fill="#ffd166"/><rect x="14" y="3" width="1" height="1" fill="#ffd166"/>',
+
+    update: '<rect x="7" y="2" width="2" height="8" fill="#5bc0eb"/><rect x="4" y="7" width="2" height="2" fill="#5bc0eb"/><rect x="10" y="7" width="2" height="2" fill="#5bc0eb"/><rect x="6" y="9" width="4" height="2" fill="#5bc0eb"/><rect x="7" y="10" width="2" height="2" fill="#5bc0eb"/><rect x="3" y="13" width="10" height="2" fill="#f4f1de"/>',
+
+    night: '<rect x="0" y="0" width="16" height="16" fill="#0a0a0f"/><rect x="6" y="3" width="4" height="6" fill="#ffd166"/><rect x="5" y="4" width="6" height="4" fill="#ffd166"/><rect x="2" y="2" width="1" height="1" fill="#ffffff"/><rect x="13" y="3" width="1" height="1" fill="#ffffff"/><rect x="3" y="10" width="1" height="1" fill="#ffffff"/><rect x="12" y="11" width="1" height="1" fill="#ffffff"/><rect x="8" y="12" width="1" height="1" fill="#ffffff"/>',
+
+    contract: '<rect x="3" y="1" width="10" height="14" fill="#f4f1de"/><rect x="3" y="1" width="10" height="2" fill="#0a0a0f"/><rect x="5" y="5" width="6" height="1" fill="#0a0a0f"/><rect x="5" y="8" width="6" height="1" fill="#0a0a0f"/><rect x="5" y="11" width="3" height="1" fill="#0a0a0f"/><rect x="10" y="10" width="2" height="2" fill="#4ade80"/><rect x="11" y="11" width="1" height="1" fill="#0a0a0f"/>',
+
+    case: '<rect x="3" y="1" width="10" height="14" fill="#0a0a0f"/><rect x="4" y="2" width="8" height="12" fill="#ff4d6d"/><rect x="5" y="3" width="4" height="4" fill="#0a0a0f"/><rect x="6" y="4" width="2" height="2" fill="#5bc0eb"/><rect x="4" y="13" width="8" height="1" fill="#0a0a0f"/>',
+
+    discount: '<rect x="2" y="3" width="12" height="10" fill="#ff4d6d"/><rect x="2" y="3" width="3" height="2" fill="#ff4d6d"/><rect x="11" y="3" width="3" height="2" fill="#ff4d6d"/><rect x="3" y="4" width="2" height="2" fill="#f4f1de"/><rect x="5" y="10" width="2" height="2" fill="#f4f1de"/><rect x="7" y="8" width="1" height="1" fill="#f4f1de"/><rect x="8" y="7" width="1" height="1" fill="#f4f1de"/><rect x="9" y="6" width="1" height="1" fill="#f4f1de"/><rect x="10" y="5" width="1" height="1" fill="#f4f1de"/>',
+
+    chat: '<rect x="1" y="3" width="9" height="6" fill="#5bc0eb"/><rect x="2" y="9" width="2" height="2" fill="#5bc0eb"/><rect x="2" y="4" width="6" height="1" fill="#0b0f1a"/><rect x="2" y="6" width="4" height="1" fill="#0b0f1a"/><rect x="7" y="7" width="8" height="6" fill="#4ade80"/><rect x="12" y="13" width="2" height="2" fill="#4ade80"/><rect x="8" y="8" width="5" height="1" fill="#0b0f1a"/><rect x="8" y="10" width="3" height="1" fill="#0b0f1a"/>',
+
+    game: '<rect x="1" y="6" width="14" height="6" fill="#1f2640"/><rect x="2" y="7" width="12" height="4" fill="#3a3f55"/><rect x="3" y="8" width="1" height="2" fill="#f4f1de"/><rect x="2" y="8" width="3" height="1" fill="#f4f1de"/><rect x="11" y="8" width="2" height="2" fill="#ff4d6d"/><rect x="9" y="10" width="2" height="2" fill="#ffd166"/><rect x="4" y="3" width="2" height="3" fill="#ff4d6d"/><rect x="6" y="2" width="2" height="4" fill="#ffd166"/>',
+
+    color: '<rect x="2" y="6" width="12" height="8" fill="#f4f1de"/><rect x="3" y="7" width="2" height="2" fill="#ff4d6d"/><rect x="6" y="7" width="2" height="2" fill="#5bc0eb"/><rect x="9" y="7" width="2" height="2" fill="#4ade80"/><rect x="3" y="10" width="2" height="2" fill="#ffd166"/><rect x="6" y="10" width="2" height="2" fill="#ff8fab"/><rect x="9" y="10" width="2" height="2" fill="#8b9bc7"/><rect x="7" y="2" width="2" height="4" fill="#a86e34"/>',
+
+    shield: '<rect x="3" y="2" width="10" height="2" fill="#5bc0eb"/><rect x="2" y="4" width="12" height="6" fill="#5bc0eb"/><rect x="4" y="10" width="8" height="2" fill="#5bc0eb"/><rect x="6" y="12" width="4" height="2" fill="#5bc0eb"/><rect x="7" y="5" width="2" height="4" fill="#0b0f1a"/><rect x="7" y="10" width="2" height="1" fill="#0b0f1a"/>',
+
+    camera: '<rect x="4" y="3" width="3" height="2" fill="#0a0a0f"/><rect x="10" y="4" width="2" height="2" fill="#ffd166"/><rect x="12" y="3" width="1" height="2" fill="#ff4d6d"/><rect x="2" y="5" width="12" height="8" fill="#0a0a0f"/><rect x="3" y="6" width="10" height="6" fill="#3a3f55"/><rect x="6" y="7" width="4" height="4" fill="#5bc0eb"/><rect x="7" y="8" width="2" height="2" fill="#f4f1de"/>',
+
+    wrench: '<rect x="4" y="2" width="2" height="6" fill="#8b9bc7"/><rect x="10" y="2" width="2" height="6" fill="#8b9bc7"/><rect x="4" y="7" width="8" height="2" fill="#8b9bc7"/><rect x="4" y="2" width="1" height="6" fill="#5f6f9a"/><rect x="6" y="8" width="4" height="7" fill="#8b9bc7"/><rect x="6" y="10" width="4" height="1" fill="#5f6f9a"/><rect x="6" y="12" width="4" height="1" fill="#5f6f9a"/>',
+
+    headphone: '<rect x="4" y="3" width="8" height="2" fill="#0a0a0f"/><rect x="2" y="5" width="2" height="6" fill="#0a0a0f"/><rect x="12" y="5" width="2" height="6" fill="#0a0a0f"/><rect x="3" y="6" width="2" height="4" fill="#ffd166"/><rect x="11" y="6" width="2" height="4" fill="#ffd166"/><rect x="4" y="10" width="2" height="2" fill="#ffd166"/><rect x="10" y="10" width="2" height="2" fill="#ffd166"/>',
+
+    kol: '<rect x="3" y="1" width="5" height="2" fill="#3a2a1a"/><rect x="3" y="3" width="5" height="4" fill="#ffd9b3"/><rect x="4" y="4" width="1" height="1" fill="#0a0a0f"/><rect x="6" y="4" width="1" height="1" fill="#0a0a0f"/><rect x="5" y="6" width="1" height="1" fill="#c97b6b"/><rect x="3" y="7" width="5" height="4" fill="#ff4d6d"/><rect x="10" y="4" width="5" height="8" fill="#0a0a0f"/><rect x="11" y="5" width="3" height="6" fill="#5bc0eb"/><rect x="12" y="11" width="1" height="1" fill="#f4f1de"/><rect x="12" y="1" width="2" height="1" fill="#ffd166"/><rect x="12" y="2" width="1" height="1" fill="#ffd166"/><rect x="14" y="2" width="1" height="1" fill="#ffd166"/><rect x="13" y="3" width="1" height="1" fill="#ffd166"/>',
+
+    crack: '<rect x="3" y="1" width="10" height="14" fill="#1f2640"/><rect x="4" y="2" width="8" height="11" fill="#9fb8d8"/><rect x="7" y="2" width="1" height="4" fill="#f4f1de"/><rect x="7" y="6" width="2" height="3" fill="#f4f1de"/><rect x="9" y="9" width="2" height="2" fill="#f4f1de"/><rect x="5" y="7" width="2" height="1" fill="#f4f1de"/>',
+
+    sale: '<rect x="3" y="5" width="10" height="9" fill="#ff4d6d"/><rect x="2" y="3" width="12" height="2" fill="#ff4d6d"/><rect x="6" y="2" width="4" height="2" fill="#ffd166"/><rect x="5" y="7" width="2" height="2" fill="#f4f1de"/><rect x="9" y="7" width="2" height="2" fill="#f4f1de"/><rect x="7" y="9" width="2" height="2" fill="#f4f1de"/>',
+
+    oldphone: '<rect x="4" y="2" width="8" height="12" fill="#1f2640"/><rect x="5" y="3" width="6" height="8" fill="#8b9bc7"/><rect x="6" y="4" width="4" height="1" fill="#0a0a0f"/><rect x="6" y="6" width="4" height="1" fill="#0a0a0f"/><rect x="7" y="11" width="2" height="2" fill="#f4f1de"/><rect x="11" y="2" width="2" height="2" fill="#ffd166"/>'
+  };
+
+  function eventIcon(key) {
+    var body = ICONS[key] || ICONS.box;
+    return '<svg viewBox="0 0 16 16" class="event-icon" shape-rendering="crispEdges" aria-hidden="true">' + body + '</svg>';
+  }
+
+  /* ===== 像素人物（湯姆） ===== */
+  var pixelMap = [
+    "0000000000000000000000000000",
+    "0000000000000000000000000000",
+    "000000000AAAAAA0000000000000",
+    "0000000AAAAAAAAAA00000000000",
+    "000000AAAAAAAAAAAA0000000000",
+    "000000AAABBBBBBAA00000000000",
+    "00000ABBBBBBBBBBA00000000000",
+    "00000ABBBBBBBBBBA00000000000",
+    "00000ACCDDBBCCDDA00000000000",
+    "00000ACCDDBBCCDDA00000000000",
+    "00000ABBBBBBBBBBA00000000000",
+    "00000ABBBEEEBBBBA00000000000",
+    "000000ABBBBBBBBA00000000000",
+    "0000000ABBBBBBA000000000000",
+    "00000000BBBBBB0000000000000",
+    "0000000B0FFGG00000000000000",
+    "000000BBHFFGFHHH00000000000",
+    "00000BBBHFFGFHHHH0000000000",
+    "00000BBHHHFFHHHHHHH00000000",
+    "0000HHHHHHHHHHHHHHH00000000",
+    "0000HHHHHHHHHHHHHHH00000000",
+    "0000HHHHHHHHHHHHHHHBBB00000",
+    "0000HHHHHHHHHHHHHHBBBBB0000",
+    "00000HHHHHHHHHHHHHBBBBB0000",
+    "00000HHHHHHHHHHHHH0BBB00000",
+    "000000HHHHHHHHHHHH000000000",
+    "00000000HHHHHHHH00000000000",
+    "0000000000000000000000000000"
+  ];
+
+  function pixelTom() {
+    var colors = {
+      'A': '#1E1E1E', // 頭髮
+      'B': '#8B5A2B', // 皮膚
+      'C': '#111111', // 眼鏡框
+      'D': '#E2EDF5', // 鏡片
+      'E': '#4A2A18', // 嘴巴
+      'F': '#FFFFFF', // 襯衫
+      'G': '#14274E', // 領帶
+      'H': '#2D5FA6'  // 西裝
+    };
+    var svg = '<svg viewBox="0 0 28 28" width="100%" height="100%" shape-rendering="crispEdges" aria-hidden="true" style="display:block;">';
+    for (var y = 0; y < pixelMap.length; y++) {
+      for (var x = 0; x < pixelMap[y].length; x++) {
+        var char = pixelMap[y][x];
+        if (colors[char]) {
+          svg += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + colors[char] + '"/>';
+        }
+      }
+    }
+    svg += '</svg>';
+    return svg;
+  }
+
+  /* ===== 像素手機（結算用） ===== */
+  function pixelPhone(mood, big) {
+    var w = big ? 96 : 44;
+    var h = big ? 132 : 60;
+    var screenColor = mood === "happy" ? "#8fe3ff" : mood === "ok" ? "#9fb8d8" : "#7d8aa8";
+    var batteryColor = mood === "happy" ? "#4ade80" : mood === "ok" ? "#ffd166" : "#ff4d6d";
+    var eyes, mouth, crack = "", batteryBars = "";
+    if (mood === "happy") {
+      eyes = '<rect x="35" y="46" width="6" height="8" fill="#0a0a0f"/><rect x="55" y="46" width="6" height="8" fill="#0a0a0f"/>';
+      mouth = '<rect x="38" y="66" width="4" height="4" fill="#0a0a0f"/><rect x="54" y="66" width="4" height="4" fill="#0a0a0f"/><rect x="42" y="70" width="12" height="4" fill="#0a0a0f"/>';
+      batteryBars = '<rect x="30" y="112" width="10" height="8" fill="' + batteryColor + '"/><rect x="42" y="112" width="10" height="8" fill="' + batteryColor + '"/><rect x="54" y="112" width="10" height="8" fill="' + batteryColor + '"/>';
+    } else if (mood === "ok") {
+      eyes = '<rect x="36" y="50" width="6" height="6" fill="#0a0a0f"/><rect x="54" y="50" width="6" height="6" fill="#0a0a0f"/>';
+      mouth = '<rect x="40" y="70" width="16" height="4" fill="#0a0a0f"/>';
+      batteryBars = '<rect x="30" y="112" width="10" height="8" fill="' + batteryColor + '"/><rect x="42" y="112" width="10" height="8" fill="' + batteryColor + '"/>';
+    } else {
+      eyes = '<rect x="35" y="52" width="6" height="5" fill="#0a0a0f"/><rect x="55" y="52" width="6" height="5" fill="#0a0a0f"/>';
+      mouth = '<rect x="39" y="72" width="4" height="4" fill="#0a0a0f"/><rect x="53" y="72" width="4" height="4" fill="#0a0a0f"/><rect x="43" y="68" width="10" height="4" fill="#0a0a0f"/>';
+      batteryBars = '<rect x="30" y="112" width="10" height="8" fill="' + batteryColor + '"/>';
+      crack = '<rect x="62" y="20" width="4" height="4" fill="#ffffff" opacity="0.85"/><rect x="58" y="28" width="4" height="8" fill="#ffffff" opacity="0.7"/><rect x="66" y="34" width="4" height="8" fill="#ffffff" opacity="0.55"/>';
+    }
+    var buttons = big
+      ? '<rect x="34" y="122" width="28" height="4" fill="#0a0a0f"/><rect x="44" y="126" width="8" height="4" fill="#3a3f55"/>'
+      : '<rect x="16" y="55" width="12" height="2" fill="#0a0a0f"/>';
+    var antenna = big
+      ? '<rect x="64" y="8" width="4" height="12" fill="#0a0a0f"/><rect x="60" y="6" width="12" height="4" fill="#0a0a0f"/>'
+      : '<rect x="29" y="3" width="2" height="6" fill="#0a0a0f"/><rect x="27" y="2" width="6" height="2" fill="#0a0a0f"/>';
+    var home = big
+      ? '<rect x="42" y="114" width="12" height="4" fill="#3a3f55"/>'
+      : '<rect x="20" y="50" width="4" height="2" fill="#3a3f55"/>';
+    return '<svg viewBox="0 0 100 140" class="title-phone" width="' + w + '" height="' + h + '" shape-rendering="crispEdges" aria-hidden="true">' +
+      antenna +
+      '<rect x="22" y="18" width="56" height="112" fill="#1f2640"/>' +
+      '<rect x="22" y="18" width="56" height="112" fill="none" stroke="#0a0a0f" stroke-width="4"/>' +
+      '<rect x="30" y="30" width="40" height="80" fill="' + screenColor + '"/>' +
+      '<rect x="30" y="30" width="40" height="80" fill="none" stroke="#0a0a0f" stroke-width="3"/>' +
+      eyes + mouth + crack + batteryBars + buttons + home +
+      '</svg>';
+  }
+
+  /* ===== 固定事件池（依序排列，共10個） ===== */
+  var events = [
+    { title: "算法推送開箱視頻", desc: "湯姆本來只想看三分鐘評測，結果連續看了半個小時開箱視頻。他的舊手機刷社交媒體其實還很順暢，但心裡開始痒了。", newPrice: 9800, repairCost: 0, keepLabel: "關掉直播", icon: "box" },
+    { title: "午飯桌上的比較", desc: "同事的新手機放在桌上，鏡頭多幾顆、顏色漂亮一些。湯姆的手機突然好像不夠體面，雖然功能完全正常。", newPrice: 10500, repairCost: 0, keepLabel: "放進口袋不比較", icon: "compare" },
+    { title: "夜景模式廣告", desc: "廣告拍到演唱會山頂位置都清楚，湯姆想起自己上次拍夜景有些噪點。但在日光下，舊手機其實不差。", newPrice: 11500, repairCost: 0, keepLabel: "日光下再算", icon: "night" },
+    { title: "年終購物節", desc: "購物節限定折扣、免息分期、以舊換新三重優惠。湯姆本來沒有打算換，但那個計時器正在倒數。", newPrice: 9300, repairCost: 0, keepLabel: "關掉購物 App", icon: "sale" },
+    { title: "維修報價好貴", desc: "螢幕摔爆一角，維修報價 $1600。店員說：「加多幾千換新吧，還有保養。」", newPrice: 10000, repairCost: 1600, keepLabel: "照修 $1600", icon: "wrench" },
+    { title: "旅行前想換相機", desc: "湯姆下個月去旅行，覺得舊手機拍照不夠漂亮，心裡想要換部相機更好的手機。", newPrice: 11200, repairCost: 0, keepLabel: "帶舊機去", icon: "camera" },
+    { title: "手機殼店的聯名款", desc: "新機有磁吸殼、支架殼、聯名殼；湯姆的舊手機只有兩款清貨顏色。他開始覺得是時候換了。", newPrice: 8300, repairCost: 0, keepLabel: "舊殼還能用", icon: "case" },
+    { title: "一天充三次電", desc: "維修店報價更換電池 $780，朋友卻說：「不如加一點錢換新吧。」那個「一點錢」其實是九千多。", newPrice: 9200, repairCost: 780, keepLabel: "更換電池 $780", icon: "battery" },
+    { title: "朋友群組晒新機", desc: "群組一晚彈出十幾張新機照片，個個都說「這代真的不同」。湯姆的手機沒有壞，但突然好像很舊。", newPrice: 10800, repairCost: 0, keepLabel: "不跟風", icon: "chat" },
+    { title: "螢幕細花", desc: "螢幕有幾條細微刮痕，開機之後幾乎看不到。湯姆跟自己說：「刮成這樣，是時候換了。」但其實還能用。", newPrice: 8900, repairCost: 0, keepLabel: "貼保護貼", icon: "crack" }
+  ];
+
+  var year = 1;
+  var spent = 0;
+  var swaps = 0;
+  var phoneAge = 1; // 初始手機年齡為 1 年
+  var freshness = 100;
+  var logs = [];
+
+  function $(id) { return document.getElementById(id); }
+  function money(n) { return "$" + n.toLocaleString("en-US"); }
+  
+  function moodFromFreshness(f) {
+    if (f >= 70) return "happy";
+    if (f >= 40) return "ok";
+    return "meh";
+  }
+
+  function render() {
+    $("year").textContent = Math.min(year, 10) + " / 10"; // 10 年
+    $("spent").textContent = money(spent);
+    $("swaps").textContent = swaps;
+    $("age").textContent = phoneAge + " 年";
+    $("freshVal").textContent = freshness + "%";
+    $("freshBar").style.width = freshness + "%";
+    
+    // 標題旁邊固定顯示像素風的湯姆
+    $("titlePhone").innerHTML = pixelTom();
+
+    if (year > 10) { // 10 年結束
+      $("card").classList.add("hidden");
+      $("choices").classList.add("hidden");
+      $("result").classList.remove("hidden");
+
+      var avg = swaps > 0 ? (10 / (swaps + 1)).toFixed(1) : "10.0"; // 10 年計算
+      var verdict = "";
+      var resultMood = "ok";
+      if (spent < 15000) {
+        verdict = "湯姆的舊手機表示非常欣慰。他省下的錢，可以去旅行、進修，或者做應急基金。";
+        resultMood = "happy";
+      } else if (spent < 35000) {
+        verdict = "湯姆算理性，但也養活了幾場發布會。";
+        resultMood = "ok";
+      } else if (spent < 60000) {
+        verdict = "湯姆是忠實粉絲，新鮮感的代價不小。";
+        resultMood = "meh";
+      } else {
+        verdict = "發布會 VIP 座位區。湯姆買的可能不只是手機，而是「即將擁有」的感覺。";
+        resultMood = "meh";
+      }
+      
+      // 結算頁面依然保留手機表情作為反饋
+      $("resultFace").innerHTML = pixelPhone(resultMood, true);
+
+      $("resultText").innerHTML =
+        "10 年總支出：<strong>" + money(spent) + "</strong><br>" + // 10 年
+        "換機次數：<strong>" + swaps + "</strong> 次<br>" +
+        "平均每部手機用：<strong>" + avg + "</strong> 年<br><br>" +
+        verdict +
+        "<br><br><em>記住：手機不是最新款，並不代表不能使用。</em>";
+
+      $("log").innerHTML = logs.slice(0, 5).join("<br>");
+      return;
+    }
+
+    $("card").classList.remove("hidden");
+    $("choices").classList.remove("hidden");
+    $("result").classList.add("hidden");
+
+    var e = events[year - 1];
+    $("iconWrap").innerHTML = eventIcon(e.icon);
+    $("eventTitle").textContent = e.title;
+    $("eventDesc").textContent = e.desc;
+    $("buyBtn").innerHTML = "換新機 <small>" + money(e.newPrice) + "</small>";
+    $("keepBtn").innerHTML = e.keepLabel + " <small>" + (e.repairCost ? money(e.repairCost) : "$0") + "</small>";
+    $("log").innerHTML = logs.slice(0, 4).join("<br>");
+  }
+
+  function chooseBuy() {
+    if (year > 10) return; // 10 年
+    var e = events[year - 1];
+    spent += e.newPrice;
+    swaps += 1;
+    phoneAge = 0;
+    freshness = 100;
+    logs.unshift("第 " + year + " 年：換新機（" + money(e.newPrice) + "）—— " + e.title);
+    year += 1;
+    render();
+  }
+
+  function chooseKeep() {
+    if (year > 10) return; // 10 年
+    var e = events[year - 1];
+    spent += e.repairCost;
+    phoneAge += 1;
+    freshness = Math.max(0, freshness - 15);
+    logs.unshift("第 " + year + " 年：" + e.keepLabel + "（" + (e.repairCost ? money(e.repairCost) : "$0") + "）—— " + e.title);
+    year += 1;
+    render();
+  }
+
+  function resetGame() {
+    year = 1;
+    spent = 0;
+    swaps = 0;
+    phoneAge = 1; // 重置時手機年齡為 1 年
+    freshness = 100;
+    logs = [];
+    render();
+  }
+
+  document.getElementById("buyBtn").addEventListener("click", chooseBuy);
+  document.getElementById("keepBtn").addEventListener("click", chooseKeep);
+  document.getElementById("resetBtn").addEventListener("click", resetGame);
+
+  resetGame();
+</script>
+</body>
+</html>
